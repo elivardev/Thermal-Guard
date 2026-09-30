@@ -144,9 +144,14 @@ get_max_temp() {
     temp_values=$(
         {
             # Method 1: lm-sensors
-            sensors 2>/dev/null | awk '/(Core|Package|CPU).*°C/{
-                match($0, /[+]?([0-9]+\.?[0-9]*)[°]?C/, arr)
-                if (arr[1] != "") print arr[1]
+            # Reescrito para ser 100% compatible con 'mawk' (estándar en Linux Mint)
+            sensors 2>/dev/null | awk '/(Core|Package|CPU)/ {
+                match($0, /[+-][0-9]+\.?[0-9]*/)
+                if (RSTART > 0) {
+                    val = substr($0, RSTART, RLENGTH)
+                    gsub(/[+-]/, "", val)
+                    print val
+                }
             }'
             
             # Method 2: thermal_zone (sysfs)
